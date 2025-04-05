@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link id="theme-style" rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Mulish:ital,wght@0,200..1000;1,200..1000&family=Roboto&display=swap" rel="stylesheet">
+    <!--<script src="Themes.js"></script>-->
+    <title>Создание списков</title>
+
+</head>
+<body>
+    <style>
+       
+    </style>
+    <button class="back-button" onclick="goBack()">
+        <img src="Images/goback-btn.svg" alt="Назад">
+    </button>
+    <script>
+        function goBack() {
+            window.history.back();
+        }
+    </script>
+
+    <div class="container">
+        <h1>Создание списков</h1>
+    
+    <div class="input-group">
+        <label for="titleInput">Заголовок списка:</label>
+        <input type="text" id="titleInput" placeholder="Введите заголовок">
+        <button class="create" id="addTitleBtn">Добавить заголовок</button>
+    </div>
+    
+    <div class="input-group">
+        <label for="itemsInput">Пункты списка (каждый с новой строки):</label>
+        <textarea id="itemsInput" placeholder="Введите пункты списка, каждый с новой строки"></textarea>
+        <button class="create" id="addListBtn">Создать список</button>
+    </div>
+    </div>
+
+    <div id="listsContainer">
+        <h2>Ваши списки:</h2>
+        <!-- Здесь будут отображаться созданные списки -->
+    </div>
+
+    
+
+    <!-- Второй код (страница создания целей - Targets.html) -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const titleInput = document.getElementById('titleInput');
+            const itemsInput = document.getElementById('itemsInput');
+            const addTitleBtn = document.getElementById('addTitleBtn');
+            const addListBtn = document.getElementById('addListBtn');
+            const listsContainer = document.getElementById('listsContainer');
+            
+            let currentTitle = '';
+            
+            // Добавление заголовка
+            addTitleBtn.addEventListener('click', function() {
+                const title = titleInput.value.trim();
+                if (title) {
+                    currentTitle = title;
+                    titleInput.value = '';
+                    alert('Заголовок добавлен. Теперь добавьте пункты списка.');
+                } else {
+                    alert('Пожалуйста, введите заголовок списка.');
+                }
+            });
+            
+            // Создание списка
+            addListBtn.addEventListener('click', function() {
+                if (!currentTitle) {
+                    alert('Пожалуйста, сначала добавьте заголовок списка.');
+                    return;
+                }
+                
+                const itemsText = itemsInput.value.trim();
+                if (!itemsText) {
+                    alert('Пожалуйста, введите хотя бы один пункт списка.');
+                    return;
+                }
+                
+                const items = itemsText.split('\n').filter(item => item.trim());
+                
+                // Создаем новый список
+                const newList = {
+                    title: currentTitle,
+                    items: items,
+                    id: Date.now() // Уникальный ID
+                };
+                
+                // Сохраняем список в localStorage
+                saveList(newList);
+                
+                // Очищаем поля ввода
+                itemsInput.value = '';
+                currentTitle = '';
+                
+            });
+            
+            // Функция для сохранения списка в localStorage
+            function saveList(list) {
+                let lists = JSON.parse(localStorage.getItem('userLists')) || [];
+                lists.push(list);
+                localStorage.setItem('userLists', JSON.stringify(lists));
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link id="theme-style" rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Mulish:ital,wght@0,200..1000;1,200..1000&family=Roboto&display=swap" rel="stylesheet">
+    <!--<script src="Themes.js"></script>-->
+    <title>Создание целей с таймером</title>
+</head>
+<body>
+    <style>
+    
+    </style>
+    <button class="back-button" onclick="goBack()">
+        <img src="Images/goback-btn.svg" alt="Назад">
+    </button>
+    <script>
+        function goBack() {
+            window.history.back();
+        }
+    </script>
+    <div class="container">
+        <h1>Создание целей с таймером</h1>
+        
+        <div class="input-group">
+            <label for="titleInput">Цель:</label>
+            <input type="text" id="goalTitle" placeholder="Введите название цели">
+        </div>
+        
+        <div class="input-group">
+            <label for="itemsInput">Подзадачи (каждая с новой строки):</label>
+            <textarea id="goalSubtasks" placeholder="Опишите подзадачи, необходимые для выполнения цели"></textarea>
+        </div>
+        
+        <div class="input-group">
+            <label for="timerDuration">Длительность таймера:</label>
+            <select id="timerDuration">
+                <option value="300">5 минут</option>
+                <option value="600">10 минут</option>
+                <option value="900">15 минут</option>
+                <option value="1800">30 минут</option>
+                <option value="3600">1 час</option>
+                <option value="7200">2 часа</option>
+                <option value="14400">4 часа</option>
+                <option value="28800">8 часов</option>
+                <option value="43200">12 часов</option>
+                <option value="86400">24 часа</option>
+            </select>
+        </div>
+        
+        <button class="create" id="createGoalBtn">Создать цель</button>
+        
+    </div>
+
+    <div id="goalsList">
+        <h2>Ваши цели:</h2>
+        <!-- Здесь будут отображаться созданные цели -->
+    </div>
+    
+    <div class="notification" id="notification">
+        Таймер завершен! Цель: <span id="notificationGoal"></span>
+    </div>
+    
+    <audio id="alarmSound" src="https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3" preload="auto"></audio>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const goalTitleInput = document.getElementById('goalTitle');
+            const goalSubtasksInput = document.getElementById('goalSubtasks');
+            const timerDurationInput = document.getElementById('timerDuration');
+            const createGoalBtn = document.getElementById('createGoalBtn');
+            const goalsList = document.getElementById('goalsList');
+            const notification = document.getElementById('notification');
+            const notificationGoal = document.getElementById('notificationGoal');
+            const alarmSound = document.getElementById('alarmSound');
+            
+            let goals = JSON.parse(localStorage.getItem('userGoals')) || [];
+            let timers = {};
+            
+            // Загрузка существующих целей при загрузке страницы
+            loadGoals();
+            
+            // Создание новой цели
+            createGoalBtn.addEventListener('click', function() {
+                const title = goalTitleInput.value.trim();
+                const subtasksText = goalSubtasksInput.value.trim();
+                const duration = parseInt(timerDurationInput.value);
+                
+                // Валидация
+                if (!title) {
+                    alert('Пожалуйста, введите название цели.');
+                    return;
+                }
+                
+                if (!subtasksText) {
+                    alert('Пожалуйста, введите хотя бы одну подзадачу.');
+                    return;
+                }
+                
+                const subtasks = subtasksText.split('\n').filter(item => item.trim());
+                
+                // Создаем новую цель
+                const newGoal = {
+                    id: Date.now(), // Уникальный ID
+                    title: title,
+                    subtasks: subtasks,
+                    duration: duration,
+                    endTime: null, // Будет установлено при запуске таймера
+                    timerActive: false
+                };
+                
+                // Добавляем цель в массив
+                goals.push(newGoal);
+                
+                // Сохраняем в localStorage
+                localStorage.setItem('userGoals', JSON.stringify(goals));
+                
+                // Очищаем поля ввода
+                goalTitleInput.value = '';
+                goalSubtasksInput.value = '';
+                
+                // Обновляем список целей
+                loadGoals();
+            });
+            
+
+
+            // Функция для загрузки и отображения целей
+            function loadGoals() {
+                goalsList.innerHTML = '<h2>Ваши цели:</h2>';
+                
+                if (goals.length === 0) {
+                    goalsList.innerHTML += '<p>Вы еще не создали ни одной цели.</p>';
+                    return;
+                }
+                
+                goals.forEach(goal => {
+                    const goalElement = document.createElement('div');
+                    goalElement.className = 'goal-item';
+                    goalElement.dataset.id = goal.id;
+                    
+                    const titleElement = document.createElement('div');
+                    titleElement.className = 'goal-title';
+                    titleElement.textContent = goal.title;
+                    
+                    const subtasksList = document.createElement('ul');
+                    subtasksList.className = 'goal-subtasks';
+                    goal.subtasks.forEach(subtask => {
+                        const li = document.createElement('li');
+                        li.textContent = subtask;
+                        subtasksList.appendChild(li);
+                    });
+                    
+                    const timerElement = document.createElement('div');
+                    timerElement.className = 'goal-timer';
+                    timerElement.textContent = formatTime(goal.duration);
+                    
+                    if (goal.timerActive) {
+                        timerElement.classList.add('timer-active');
+                        startTimer(goal.id, goal.endTime - Date.now());
+                    }
+                    
+                    const startBtn = document.createElement('button');
+                    startBtn.textContent = goal.timerActive ? 'Таймер запущен' : 'Запустить таймер';
+                    startBtn.disabled = goal.timerActive;
+                    startBtn.addEventListener('click', function() {
+                        startGoalTimer(goal.id);
+                    });
+                    
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'delete-btn';
+                    deleteBtn.innerHTML = '&times;';
+                    deleteBtn.addEventListener('click', function() {
+                        deleteGoal(goal.id);
+                    });
+                    
+                    goalElement.appendChild(deleteBtn);
+                    goalElement.appendChild(titleElement);
+                    goalElement.appendChild(subtasksList);
+                    goalElement.appendChild(timerElement);
+                    goalElement.appendChild(startBtn);
+                    
+                    goalsList.appendChild(goalElement);
+                });
+            }
+            
+            
+            
+            // Функция для запуска таймера цели
+            function startGoalTimer(goalId) {
+                const goalIndex = goals.findIndex(g => g.id === goalId);
+                if (goalIndex === -1) return;
+                
+                const goal = goals[goalIndex];
+                const now = Date.now();
+                const endTime = now + goal.duration * 1000;
+                
+                // Обновляем цель
+                goals[goalIndex].timerActive = true;
+                goals[goalIndex].endTime = endTime;
+                localStorage.setItem('userGoals', JSON.stringify(goals));
+                
+                // Запускаем таймер
+                startTimer(goalId, goal.duration * 1000);
+                
+                // Обновляем интерфейс
+                loadGoals();
+            }
+            
+            // Функция для управления таймером
+            function startTimer(goalId, duration) {
+                // Останавливаем предыдущий таймер, если он был
+                if (timers[goalId]) {
+                    clearInterval(timers[goalId]);
+                }
+                
+                const goalElement = document.querySelector(`.goal-item[data-id="${goalId}"]`);
+                if (!goalElement) return;
+                
+                const timerElement = goalElement.querySelector('.goal-timer');
+                let timeLeft = duration;
+                
+                // Обновляем таймер каждую секунду
+                timers[goalId] = setInterval(function() {
+                    timeLeft -= 1000;
+                    
+                    if (timeLeft <= 0) {
+                        clearInterval(timers[goalId]);
+                        timerElement.textContent = "00:00:00";
+                        
+                        // Показываем уведомление
+                        const goal = goals.find(g => g.id === goalId);
+                        if (goal) {
+                            showNotification(goal.title);
+                        }
+                        
+                        // Обновляем статус цели
+                        const goalIndex = goals.findIndex(g => g.id === goalId);
+                        if (goalIndex !== -1) {
+                            goals[goalIndex].timerActive = false;
+                            localStorage.setItem('userGoals', JSON.stringify(goals));
+                            loadGoals();
+                        }
+                    } else {
+                        timerElement.textContent = formatTime(Math.floor(timeLeft / 1000));
+                    }
+                }, 1000);
+            }
+            
+            // Функция для форматирования времени (секунды в HH:MM:SS)
+            function formatTime(seconds) {
+                const hours = Math.floor(seconds / 3600);
+                const minutes = Math.floor((seconds % 3600) / 60);
+                const secs = seconds % 60;
+                
+                return [
+                    hours.toString().padStart(2, '0'),
+                    minutes.toString().padStart(2, '0'),
+                    secs.toString().padStart(2, '0')
+                ].join(':');
+            }
+            
+            // Функция для показа уведомления
+            function showNotification(goalTitle) {
+                notificationGoal.textContent = goalTitle;
+                notification.style.display = 'block';
+                alarmSound.play();
+                
+                // Скрываем уведомление через 5 секунд
+                setTimeout(function() {
+                    notification.style.display = 'none';
+                }, 5000);
+            }
+            
+            // Функция для удаления цели
+            function deleteGoal(goalId) {
+                if (confirm('Вы уверены, что хотите удалить эту цель?')) {
+                    // Останавливаем таймер, если он активен
+                    if (timers[goalId]) {
+                        clearInterval(timers[goalId]);
+                        delete timers[goalId];
+                    }
+                    
+                    // Удаляем цель из массива
+                    goals = goals.filter(goal => goal.id !== goalId);
+                    localStorage.setItem('userGoals', JSON.stringify(goals));
+                    
+                    // Обновляем интерфейс
+                    loadGoals();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

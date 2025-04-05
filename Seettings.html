@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings</title>
+    <link id="theme-style" rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Mulish:ital,wght@0,200..1000;1,200..1000&family=Roboto&display=swap" rel="stylesheet">
+    <!--<script src="Themes.js"></script>-->
+</head>
+<body>
+    <button class="back-button" onclick="goBack()">
+        <img src="Images/goback-btn.svg" alt="Назад">
+    </button>
+    <script>
+        function goBack() {
+            window.history.back();
+        }
+    </script>
+
+    <div class="Page_set">
+
+        <h2 class="set_txt_head">Настройки</h2>
+
+        <h3 class="view_set_txt">Внешний вид страницы</h3>
+
+        <div class="color_set">
+            <p>Тема страницы</p>
+
+            <div class="toggle">
+                <input type="checkbox" class="checkbox" id="checkbox2" />
+                <label for="checkbox2" class="switch"></label>
+            </div>
+
+        </div>
+        <div class="element_size_set">
+            <p>Размер элементов</p>
+            <a class="size_items" tabindex="1">Обычный</a>
+
+            <ul class="sub_size_menu">
+                <li><a href="#1">Обычный</a></li>
+                <li><a href="#2">Увеличенный</a></li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

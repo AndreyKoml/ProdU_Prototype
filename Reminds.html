@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link id="theme-style" rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Mulish:ital,wght@0,200..1000;1,200..1000&family=Roboto&display=swap" rel="stylesheet">
+    <!--<script src="Themes.js"></script>-->
+    <title>Создание напоминаний</title>
+</head>
+<body>
+    
+    <button class="back-button" onclick="goBack()">
+        <img src="Images/goback-btn.svg" alt="Назад">
+    </button>
+    <script>
+        function goBack() {
+            window.history.back();
+        }
+    </script>
+    <div class="container">
+        <h1>Создание напоминаний</h1>
+        
+        <div class="input-group">
+            <label for="titleInput">Текст напоминания:</label>
+            <textarea id="reminderText" placeholder="Введите текст напоминания" required></textarea>
+        </div>
+        
+        <div class="input-group">
+            <label for="reminderTime">Время напоминания:</label>
+            <input type="datetime-local" id="reminderTime" required>
+        </div>
+        
+        <button class="create"  id="createReminderBtn">Создать напоминание</button>
+        
+        <div class="reminders-list" id="remindersList">
+            <!-- Здесь будут отображаться созданные напоминания -->
+        </div>
+        
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const reminderText = document.getElementById('reminderText');
+            const reminderTime = document.getElementById('reminderTime');
+            const createReminderBtn = document.getElementById('createReminderBtn');
+            const remindersList = document.getElementById('remindersList');
+            
+            // Загрузка напоминаний при запуске
+            loadReminders();
+            
+            // Создание нового напоминания
+            createReminderBtn.addEventListener('click', function() {
+                const text = reminderText.value.trim();
+                const time = reminderTime.value;
+                
+                // Валидация
+                if (!text) {
+                    alert('Пожалуйста, введите текст напоминания.');
+                    return;
+                }
+                
+                if (!time) {
+                    alert('Пожалуйста, укажите время напоминания.');
+                    return;
+                }
+                
+                const selectedTime = new Date(time);
+                const currentTime = new Date();
+                
+                if (selectedTime <= currentTime) {
+                    alert('Пожалуйста, выберите время в будущем.');
+                    return;
+                }
+                
+                // Создаем новое напоминание
+                const newReminder = {
+                    id: Date.now(),
+                    text: text,
+                    time: time,
+                    timestamp: selectedTime.getTime(),
+                    notified: false
+                };
+                
+                // Сохраняем напоминание
+                saveReminder(newReminder);
+                
+                // Очищаем поля ввода
+                reminderText.value = '';
+                reminderTime.value = '';
+                
+                // Обновляем список
+                displayReminders();
+                
+                alert('Напоминание успешно создано!');
+            });
+            
+            // Отображение списка напоминаний
+            function displayReminders() {
+                const reminders = getReminders();
+                remindersList.innerHTML = '';
+                
+                if (reminders.length === 0) {
+                    remindersList.innerHTML = '<p>У вас нет активных напоминаний.</p>';
+                    return;
+                }
+                
+                reminders.forEach(reminder => {
+                    const reminderElement = document.createElement('div');
+                    reminderElement.className = 'reminder-item';
+                    
+                    const textElement = document.createElement('p');
+                    textElement.textContent = reminder.text;
+                    
+                    const timeElement = document.createElement('p');
+                    timeElement.textContent = `Напоминание: ${formatDateTime(reminder.time)}`;
+                    timeElement.style.color = '#7f8c8d';
+                    timeElement.style.marginTop = '5px';
+                    
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.textContent = 'Удалить';
+                    deleteBtn.style.marginTop = '10px';
+                    deleteBtn.style.backgroundColor = '#e74c3c';
+                    deleteBtn.style.border = 'none';
+                    deleteBtn.style.borderRadius = '10px';
+                    deleteBtn.addEventListener('click', () => deleteReminder(reminder.id));
+                    
+                    reminderElement.appendChild(textElement);
+                    reminderElement.appendChild(timeElement);
+                    reminderElement.appendChild(deleteBtn);
+                    
+                    remindersList.appendChild(reminderElement);
+                });
+            }
+            
+            // Сохранение напоминания в localStorage
+            function saveReminder(reminder) {
+                let reminders = getReminders();
+                reminders.push(reminder);
+                localStorage.setItem('userReminders', JSON.stringify(reminders));
+            }
+            
+            // Удаление напоминания
+            function deleteReminder(id) {
+                let reminders = getReminders().filter(r => r.id !== id);
+                localStorage.setItem('userReminders', JSON.stringify(reminders));
+                displayReminders();
+            }
+            
+            // Получение всех напоминаний
+            function getReminders() {
+                return JSON.parse(localStorage.getItem('userReminders')) || [];
+            }
+            
+            // Загрузка напоминаний
+            function loadReminders() {
+                displayReminders();
+                checkReminders();
+            }
+            
+            // Проверка напоминаний (для уведомлений)
+            function checkReminders() {
+                const reminders = getReminders();
+                const now = new Date().getTime();
+                
+                reminders.forEach(reminder => {
+                    if (!reminder.notified && reminder.timestamp <= now) {
+                        reminder.notified = true;
+                        // Помечаем как уведомленное
+                        saveReminders(reminders);
+                    }
+                });
+            }
+            
+            // Сохранение массива напоминаний
+            function saveReminders(reminders) {
+                localStorage.setItem('userReminders', JSON.stringify(reminders));
+            }
+            
+            // Форматирование даты и времени
+            function formatDateTime(datetimeStr) {
+                const date = new Date(datetimeStr);
+                return date.toLocaleString('ru-RU');
+            }
+        });
+    </script>
+</body>
+</html>

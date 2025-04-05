@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account info</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Mulish:ital,wght@0,200..1000;1,200..1000&family=Roboto&display=swap" rel="stylesheet">
+    <!--<script src="Themes.js"></script>-->
+    <script scr="Profile_script.js"></script>
+</head>
+<body>
+    <button class="back-button" onclick="goBack()">
+        <img src="Images/goback-btn.svg" alt="Назад">
+    </button>
+    <script>
+        function goBack() {
+            window.history.back();
+        }
+    </script>
+
+    <div class="blcks_acc_1">
+        <div class="profile">
+            <img id="profile-pic" src="Images/default_photo.png" alt="Фото профиля">
+            <label class="input_img_btn" for="file-input" class="custom-file-upload">
+                Выбрать фото
+            </label>
+            <input type="file" id="file-input" accept="image/*">
+            <button class="upload_img_btn" id="upload-btn">Установить фото</button>
+        </div>
+        <div class="Log_pass_blck">
+            <form class="profForm" id="profileForm">
+                <label class="username" for="username">Логин:</label>
+                <input type="text" id="username" name="username" required pattern="[A-Za-z0-9]+" title="Только буквы и цифры">
+    
+                <label class="password" for="password">Пароль:</label>
+                <input type="password" id="password" name="password" required>
+                <small id="password-help" class="help-text"></small>
+    
+                <button class="save_prf" type="submit">Сохранить</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

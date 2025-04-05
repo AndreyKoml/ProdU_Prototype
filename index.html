@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProdU Web</title>
+    <link id="theme-style" rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Mulish:ital,wght@0,200..1000;1,200..1000&family=Roboto&display=swap" rel="stylesheet">
+    <script scr="Profile_script.js"></script>
+    <!--<script src="Themes.js"></script>-->
+</head>
+<body>
+</head>
+<body>
+    <div class="header">
+        <div class="drop_set">
+            <div class="Settings">
+                <button class="set_btn" id="set_btn">
+                    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="8.5" stroke="black" stroke-width="3"/>
+                        <rect x="10" width="4" height="3" rx="0.8" fill="black"/>
+                        <rect x="19.1213" y="2" width="4" height="3" rx="0.8" transform="rotate(45 19.1213 2)" fill="black"/>
+                        <rect x="2" y="4.82837" width="4" height="3" rx="0.8" transform="rotate(-45 2 4.82837)" fill="black"/>
+                        <rect y="14" width="4" height="3" rx="0.8" transform="rotate(-90 0 14)" fill="black"/>
+                        <rect x="21" y="14" width="4" height="3" rx="0.8" transform="rotate(-90 21 14)" fill="black"/>
+                        <rect x="4.82837" y="21.9497" width="4" height="3" rx="0.8" transform="rotate(-135 4.82837 21.9497)" fill="black"/>
+                        <rect x="17" y="19.8284" width="4" height="3" rx="0.8" transform="rotate(-45 17 19.8284)" fill="black"/>
+                        <rect x="10" y="21" width="4" height="3" rx="0.8" fill="black"/>
+                        </svg>
+                </button>
+            </div>
+            <div class="drop_content" id="drop_content">
+                <a href="Seettings.html">Настройки</a>
+                <a href="#">Обратная связь</a>
+            </div>
+        </div>
+       
+        <div class="Account">
+            <a href="account.html" class="acc_btn">
+                <img class="acc_img" id="profile-pic-small" src="Images/default_photo.png" alt="Фото профиля">
+            </a>
+        </div>
+    </div>
+    <div class="func_blcks">
+        <div class="Targets">
+            <div class="Targ_head">
+                <h2 class="head_txt">Ваши задачи</h2>
+                <a href="Targets.html" class="add_2">
+                    <img class="plus"src="Images/plus.svg">
+                </a>
+            </div>
+            
+            <div class="targ_blck_bgn" id="t_blck_bgn">
+                <!-- Здесь будут отображаться созданные цели -->
+            </div>
+            <div class="add_targ_blck" id="addGoalBlock">
+                <a href="Targets.html" class="add_1">
+                    <img class="plus"src="Images/plus.svg">
+                </a>
+            </div>
+        </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const goalsContainer = document.getElementById('t_blck_bgn');
+                const addGoalBlock = document.getElementById('addGoalBlock');
+                
+                // Загрузка целей при загрузке страницы
+                loadGoalsOnMainPage();
+                
+                function loadGoalsOnMainPage() {
+                    const goals = JSON.parse(localStorage.getItem('userGoals')) || [];
+                    
+                    // Очищаем контейнер
+                    goalsContainer.innerHTML = '';
+                    
+                    if (goals.length === 0) {
+                        // Если целей нет, показываем блок добавления
+                        addGoalBlock.style.display = 'flex';
+                        return;
+                    }
+                    
+                    // Скрываем блок добавления, если есть цели
+                    addGoalBlock.style.display = 'none';
+                    
+                    // Отображаем только последнюю добавленную цель (или все, если нужно)
+                    const latestGoal = goals[goals.length - 1];
+                    renderGoalOnMainPage(latestGoal);
+                }
+                
+                function renderGoalOnMainPage(goal) {
+                    const goalElement = document.createElement('div');
+                    goalElement.className = 'goal-item-main';
+                    goalElement.dataset.id = goal.id;
+                    
+                    const titleElement = document.createElement('div');
+                    titleElement.className = 'goal-title-main';
+                    titleElement.textContent = goal.title;
+                    
+                    const subtasksList = document.createElement('ul');
+                    subtasksList.className = 'goal-subtasks-main';
+                    goal.subtasks.forEach(subtask => {
+                        const li = document.createElement('li');
+                        li.textContent = subtask;
+                        subtasksList.appendChild(li);
+                    });
+                    
+                    const timerElement = document.createElement('div');
+                    timerElement.className = 'goal-timer-main';
+                    timerElement.textContent = formatTime(goal.duration);
+                    
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'delete-btn-main';
+                    deleteBtn.innerHTML = '&times;';
+                    deleteBtn.addEventListener('click', function() {
+                        deleteGoal(goal.id);
+                    });
+                    
+                    goalElement.appendChild(deleteBtn);
+                    goalElement.appendChild(titleElement);
+                    goalElement.appendChild(subtasksList);
+                    goalElement.appendChild(timerElement);
+                    
+                    goalsContainer.appendChild(goalElement);
+                }
+                
+                function formatTime(seconds) {
+                    const hours = Math.floor(seconds / 3600);
+                    const minutes = Math.floor((seconds % 3600) / 60);
+                    const secs = seconds % 60;
+                    
+                    return [
+                        hours.toString().padStart(2, '0'),
+                        minutes.toString().padStart(2, '0'),
+                        secs.toString().padStart(2, '0')
+                    ].join(':');
+                }
+                
+                function deleteGoal(goalId) {
+                    if (confirm('Вы уверены, что хотите удалить эту цель?')) {
+                        let goals = JSON.parse(localStorage.getItem('userGoals')) || [];
+                        goals = goals.filter(goal => goal.id !== goalId);
+                        localStorage.setItem('userGoals', JSON.stringify(goals));
+                        loadGoalsOnMainPage();
+                    }
+                }
+            });
+        </script>
+     
+
+        <div class="Lists">
+            <div class="List_search">
+                <div class="search_box">
+                    <input type="search" id="search" class="search" placeholder="Найти запись"/>
+                    <button class="srch_btn" type="submit">
+                        <img class="lupa"src="Images/lupa.svg">
+                    </button>
+                </div>
+            </div>
+            <div class="Head_list">
+                <h2>Ваши списки</h2>
+                <a href="Lists.html" class="add_2">
+                    <img class="plus"src="Images/plus.svg">
+                </a>
+            </div>
+            <div class="add_list_blck" id="addListBlock">
+                <a href="Lists.html" class="add_1">
+                    <img class="plus"src="Images/plus.svg">
+                </a>
+            </div>
+            <div id="allListsContainer">
+        
+            </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const allListsContainer = document.getElementById('allListsContainer');
+        const addListBlock = document.getElementById('addListBlock');
+        
+        function displayAllLists() {
+            const lists = JSON.parse(localStorage.getItem('userLists')) || [];
+            
+            // Очищаем контейнер
+            allListsContainer.innerHTML = '';
+            
+            if (lists.length === 0) {
+                // Если списков нет, показываем блок добавления
+                addListBlock.style.display = 'flex';
+                return;
+            }
+            
+            // Скрываем блок добавления, если есть списки
+            addListBlock.style.display = 'none';
+            
+            // Отображаем все списки
+            lists.forEach(list => {
+                const listElement = document.createElement('div');
+                listElement.className = 'list-container';
+                
+                const titleElement = document.createElement('h2');
+                titleElement.className = 'list-title';
+                titleElement.textContent = list.title;
+                
+                const itemsList = document.createElement('ul');
+                itemsList.className = 'list-items';
+                list.items.forEach(item => {
+                    const li = document.createElement('li');
+                    li.textContent = item;
+                    itemsList.appendChild(li);
+                });
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'delete-list-btn';
+                deleteBtn.innerHTML = '&times;';
+                deleteBtn.addEventListener('click', function() {
+                    deleteList(list.id);
+                });
+                
+                listElement.appendChild(deleteBtn);
+                listElement.appendChild(titleElement);
+                listElement.appendChild(itemsList);
+                
+                allListsContainer.appendChild(listElement);
+            });
+        }
+        
+        function deleteList(listId) {
+            if (confirm('Вы уверены, что хотите удалить этот список?')) {
+                let lists = JSON.parse(localStorage.getItem('userLists')) || [];
+                lists = lists.filter(list => list.id !== listId);
+                localStorage.setItem('userLists', JSON.stringify(lists));
+                displayAllLists();
+                
+                // Если списков больше нет, показываем блок добавления
+                if (lists.length === 0) {
+                    addListBlock.style.display = 'flex';
+                }
+            }
+        }
+        
+        displayAllLists();
+    });
+</script> 
+            
+        </div>
+        
+        <div class="Statistics">
+            <div class="Stat_head">
+                <h2>Статистика</h2>
+            </div>
+            <div class="Stat_Read_blcks">
+                <div class="Stat_blcks">
+                    <div class="blck_stat_1">
+                        <div class="Notes_count" id="Not_count"></div>
+                        <div class="Targets_count" id="Targ_count"></div>
+                    </div>
+                    <div class="Targets_procent" id="Targ_proc"></div>
+                </div> 
+                
+                <div class="Read_blck">
+                    <div class="Read_head">
+                        <img class="oblozh" src="Images/face_hiperfokus-obl.png">
+                        <p>"Гиперфокус": личные впечатления</p>
+                    </div>
+                    <p class="Read_txt">Личное мнение создателей приложения о работе Криса Бэйли.</p>
+                    <button class="read_btn">Читать</button>
+                </div>
+            </div>
+        </div>
+        <div class="Remember">
+            <div class="head_rem">
+                <h2 class="head_txt">Ваши напоминания</h2>
+                <a href="Reminds.html" class="add_2">
+                    <img class="plus" src="Images/plus.svg">
+                </a>
+            </div>
+            <div class="add_rem_blck" id="addRemBlock">
+                <a href="Reminds.html" class="add_1">
+                    <img class="plus" src="Images/plus.svg">
+                </a>
+            </div>
+            <div id="remindersContainer"></div>
+        </div>
+        
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const addRemBlock = document.getElementById('addRemBlock');
+                const remindersContainer = document.getElementById('remindersContainer');
+                
+                // Загрузка напоминаний при загрузке страницы
+                loadRemindersOnMainPage();
+                
+                function loadRemindersOnMainPage() {
+                    const reminders = getReminders();
+                    
+                    // Очищаем контейнер
+                    remindersContainer.innerHTML = '';
+                    
+                    if (reminders.length === 0) {
+                        // Если напоминаний нет, показываем блок добавления
+                        addRemBlock.style.display = 'flex';
+                        return;
+                    }
+                    
+                    // Скрываем блок добавления, если есть напоминания
+                    addRemBlock.style.display = 'none';
+                    
+                    // Отображаем все активные напоминания
+                    reminders.forEach(reminder => {
+                        if (!reminder.notified) {
+                            renderReminderOnMainPage(reminder);
+                        }
+                    });
+                }
+                
+                function renderReminderOnMainPage(reminder) {
+                    const reminderElement = document.createElement('div');
+                    reminderElement.className = 'reminder-item-main';
+                    reminderElement.dataset.id = reminder.id;
+                    
+                    const textElement = document.createElement('p');
+                    textElement.className = 'reminder-text';
+                    textElement.textContent = reminder.text;
+                    
+                    const timeElement = document.createElement('p');
+                    timeElement.className = 'reminder-time';
+                    timeElement.textContent = formatDateTime(reminder.time);
+                    
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'delete-reminder-btn';
+                    deleteBtn.innerHTML = '&times;';
+                    deleteBtn.addEventListener('click', function() {
+                        deleteReminder(reminder.id);
+                    });
+                    
+                    reminderElement.appendChild(deleteBtn);
+                    reminderElement.appendChild(textElement);
+                    reminderElement.appendChild(timeElement);
+                    
+                    remindersContainer.appendChild(reminderElement);
+                }
+                
+                function getReminders() {
+                    return JSON.parse(localStorage.getItem('userReminders')) || [];
+                }
+                
+                function deleteReminder(id) {
+                    if (confirm('Вы уверены, что хотите удалить это напоминание?')) {
+                        let reminders = getReminders().filter(r => r.id !== id);
+                        localStorage.setItem('userReminders', JSON.stringify(reminders));
+                        loadRemindersOnMainPage();
+                        
+                        // Если напоминаний больше нет, показываем блок добавления
+                        if (reminders.length === 0 || reminders.every(r => r.notified)) {
+                            addRemBlock.style.display = 'flex';
+                        }
+                    }
+                }
+                
+                function formatDateTime(datetimeStr) {
+                    const date = new Date(datetimeStr);
+                    return date.toLocaleString('ru-RU', {
+                        day: 'numeric',
+                        month: 'long',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                }
+            });
+        </script>
+        
+    </div>
+    
+    <script src="Set_button_script.js"></script>
+</body>
+</html>
